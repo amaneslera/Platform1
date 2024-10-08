@@ -1,0 +1,70 @@
+#include <iostream>
+#include <windows.h>
+
+void createChildProcess(PROCESS_INFORMATION &pi) {
+    STARTUPINFO si = { sizeof(si) };
+
+    // Create a child process (e.g., Notepad)
+    if (CreateProcess(NULL, (LPSTR)"C:\\Windows\\System32\\notepad.exe", NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
+        std::cout << "Option 1: Create child process. New process created with PID: " << pi.dwProcessId << "\n";
+    } else {
+        std::cerr << "Failed to create process! Error: " << GetLastError() << "\n";
+    }
+}
+
+void monitorProcessState(PROCESS_INFORMATION &pi) {
+    DWORD exitCode;
+    if (GetExitCodeProcess(pi.hProcess, &exitCode)) {
+        std::cout << "Option 2: Monitor Process\n";
+        if (exitCode == STILL_ACTIVE) {
+            std::cout << "Process ID: " << pi.dwProcessId << ", State running\n";
+        } else {
+            std::cout << "Process ID: " << pi.dwProcessId << ", State terminated\n";
+        }
+    } else {
+        std::cerr << "Failed to get process state! Error: " << GetLastError() << "\n";
+    }
+}
+
+void terminateProcess(PROCESS_INFORMATION &pi) {
+    if (TerminateProcess(pi.hProcess, 0)) {
+        std::cout << "Option 3: Terminate Process\n";
+        std::cout << "Process " << pi.dwProcessId << " terminated successfully.\n";
+    } else {
+        std::cerr << "Failed to terminate process! Error: " << GetLastError() << "\n";
+    }
+}
+
+int main() {
+    PROCESS_INFORMATION pi = {0};  // Store child process info
+    int choice;
+
+    while (true) {
+        std::cout << "\nSelect an option:\n";
+        std::cout << "1: Create a child process\n";
+        std::cout << "2: Monitor process state\n";
+        std::cout << "3: Terminate a process\n";
+        std::cout << "4: Exit\n";
+        std::cin >> choice;
+
+        switch (choice) {
+            case 1:
+                createChildProcess(pi);
+                break;
+            case 2:
+                monitorProcessState(pi);
+                break;
+            case 3:
+                terminateProcess(pi);
+                break;
+            case 4:
+                std::cout << "Exiting...\n";
+                return 0;
+            default:
+                std::cout << "Invalid option! Try again.\n";
+                break;
+        }
+    }
+
+    return 0;
+}
