@@ -1,0 +1,76 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <iomanip> 
+
+using namespace std;
+
+struct Process {
+    int processID;
+    int arrivalTime;
+    int burstTime;
+    int waitingTime;
+    int turnaroundTime;
+};
+
+// Function to sort processes based on arrival time
+bool compareArrivalTime(Process a, Process b) {
+    return a.arrivalTime < b.arrivalTime;
+}
+
+int main() {
+    int n;
+    cout << "Enter the number of processes: ";
+    cin >> n;
+
+    vector<Process> processes(n);
+
+    // Input process data
+    for (int i = 0; i < n; i++) {
+        cout << "Process " << i + 1 << ": Arrival Time = ";
+        cin >> processes[i].arrivalTime;
+        cout << "Process " << i + 1 << ": Burst Time = ";
+        cin >> processes[i].burstTime;
+        processes[i].processID = i + 1;  // Assign process ID
+    }
+
+    // Sort processes based on arrival time
+    sort(processes.begin(), processes.end(), compareArrivalTime);
+
+    // Calculate waiting time and turnaround time
+    processes[0].waitingTime = 0;
+    processes[0].turnaroundTime = processes[0].burstTime;
+    int completionTime = processes[0].arrivalTime + processes[0].burstTime;
+
+    for (int i = 1; i < n; i++) {
+        processes[i].waitingTime = completionTime - processes[i].arrivalTime;
+        processes[i].waitingTime = max(0, processes[i].waitingTime); // Ensure no negative waiting time
+        processes[i].turnaroundTime = processes[i].waitingTime + processes[i].burstTime;
+        completionTime += processes[i].burstTime;
+    }
+
+    // Display process table in the required format
+    double totalWaitingTime = 0, totalTurnaroundTime = 0;
+
+    cout << "\nProcess Table :\n";
+    cout << "----------------------------------------------------------------------------------------------\n";
+    cout << "Process ID\tArrival Time\tBurst Time\tWaiting Time\tTurnaround Time\n";
+    cout << "----------------------------------------------------------------------------------------------\n";
+
+    for (int i = 0; i < n; i++) {
+        totalWaitingTime += processes[i].waitingTime;
+        totalTurnaroundTime += processes[i].turnaroundTime;
+
+        cout << processes[i].processID << "\t\t" 
+             << processes[i].arrivalTime << "\t\t" 
+             << processes[i].burstTime << "\t\t" 
+             << processes[i].waitingTime << "\t\t" 
+             << processes[i].turnaroundTime << endl;
+    }
+
+    // Display average waiting time and turnaround time
+    cout << "\nAverage Waiting Time: " << fixed << setprecision(2) << totalWaitingTime / n << endl;
+    cout << "Average Turnaround Time: " << fixed << setprecision(2) << totalTurnaroundTime / n << endl;
+
+    return 0;
+}
