@@ -1,0 +1,98 @@
+#include <iostream>
+#include <iomanip>
+#include <vector>
+#include <algorithm>
+
+struct Process {
+    int processID;
+    int arrivalTime;
+    int burstTime;
+    int waitingTime;
+    int turnaroundTime;
+    int completionTime;  // Added completion time
+};
+
+// Function to calculate waiting times and turnaround times
+void calculateTimes(std::vector<Process>& processes) {
+    int currentTime = 0; // Track the current time
+    bool completed[processes.size()] = {false}; // To track completed processes
+    int completedCount = 0; // Count of completed processes
+
+    while (completedCount < processes.size()) {
+        int idx = -1;
+        int minBurstTime = INT_MAX;
+
+        // Find the process that is ready to execute and has the smallest burst time
+        for (size_t i = 0; i < processes.size(); ++i) {
+            if (processes[i].arrivalTime <= currentTime && !completed[i]) {
+                if (processes[i].burstTime < minBurstTime) {
+                    minBurstTime = processes[i].burstTime;
+                    idx = i;
+                }
+            }
+        }
+
+        // If no process is found that can be executed, increment currentTime
+        if (idx == -1) {
+            currentTime++; // Move time forward if no process is ready
+        } else {
+            // Update the process details
+            processes[idx].waitingTime = currentTime - processes[idx].arrivalTime;
+            currentTime += processes[idx].burstTime; // Increment current time by the burst time of the selected process
+            processes[idx].completionTime = currentTime; // Set completion time
+            processes[idx].turnaroundTime = processes[idx].waitingTime + processes[idx].burstTime; // Calculate turnaround time
+            completed[idx] = true; // Mark the process as completed
+            completedCount++; // Increment the completed process count
+        }
+    }
+}
+
+// Display results
+void displayResults(const std::vector<Process>& processes) {
+    double totalWaitingTime = 0, totalTurnaroundTime = 0;
+
+    std::cout << "Process ID\tArrival Time\tBurst Time\tCompletion Time\tWaiting Time\tTurnaround Time\n";
+    for (const auto& process : processes) {
+        std::cout << std::setw(10) << process.processID << "\t"
+                  << std::setw(12) << process.arrivalTime << "\t"
+                  << std::setw(10) << process.burstTime << "\t"
+                  << std::setw(15) << process.completionTime << "\t"
+                  << std::setw(12) << process.waitingTime << "\t"
+                  << std::setw(15) << process.turnaroundTime << "\n"; // Display completion time in the correct position
+        totalWaitingTime += process.waitingTime;
+        totalTurnaroundTime += process.turnaroundTime;
+    }
+
+    std::cout << "\nAverage Waiting Time: " << totalWaitingTime / processes.size() << "\n";
+    std::cout << "Average Turnaround Time: " << totalTurnaroundTime / processes.size() << "\n";
+}
+
+int main() {
+    int numProcesses;
+
+    // Ask user for the number of processes
+    std::cout << "Enter the number of processes: ";
+    std::cin >> numProcesses;
+
+    std::vector<Process> processes(numProcesses);
+
+    // Input process details
+    for (int i = 0; i < numProcesses; ++i) {
+        processes[i].processID = i + 1;  // Assign process ID starting from 1
+        std::cout << "Enter Arrival Time for Process " << processes[i].processID << ": ";
+        std::cin >> processes[i].arrivalTime;  // Get arrival time
+        std::cout << "Enter Burst Time for Process " << processes[i].processID << ": ";
+        std::cin >> processes[i].burstTime;  // Get burst time
+    }
+
+    // Sort processes by arrival time initially
+    std::sort(processes.begin(), processes.end(), [](const Process &a, const Process &b) {
+        return a.arrivalTime < b.arrivalTime; // Sort by arrival time
+    });
+
+    // Calculate waiting and turnaround times
+    calculateTimes(processes);
+    displayResults(processes);
+
+    return 0;
+}
